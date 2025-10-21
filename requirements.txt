@@ -1,12 +1,8 @@
-# Temel Streamlit, Veri İşleme
 streamlit
 pandas
-
-# LangChain Çekirdek ve Bağlayıcılar (Stabil sürümler zorlanıyor)
-langchain==0.1.13
-langchain-community==0.0.29
-langchain-google-genai==0.0.12
-
-# Vektör Veritabanı ve Yardımcılar (Stabil sürüm zorlanıyor)
-chromadb==0.4.24
+langchain
+langchain-community
+langchain-google-genai
+chromadb
 typing
+google-api-core
