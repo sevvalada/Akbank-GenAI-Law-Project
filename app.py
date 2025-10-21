@@ -3,24 +3,14 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
-# Retrieval ve LLM Zincirleri: Hata çözümü için doğrudan community'den çekiliyor
-from langchain_community.chains import RetrievalQA  # <-- YENİ ÇAĞRI
-from langchain_community.chains import LLMChain     # <-- YENİ ÇAĞRI
+# Retrieval ve LLM Zincirleri: Hata çözümü için LangChain'in ana paketinden çekiyoruz
+# Bu, en güncel ve önerilen yöntemdir.
+from langchain.chains import RetrievalQA 
+from langchain.chains import LLMChain 
 
-# Prompt Şablonları (Bu doğru kalır)
 from langchain.prompts import PromptTemplate
-
-# Gelişmiş Retrieval (Bu doğru kalır)
-from langchain.retrievers.multi_query import MultiQueryRetriever
-from typing import Dict, Any 
-
-
-
-# Hata Veren Eksik Modüller İçin Düzeltme Notu:
-# Eğer yukarıdaki 'from langchain.chains import RetrievalQA' yine hata verirse, 
-# 'langchain-community' paketinin güncel sürümünde 'RetrievalQA'nın tam yolu değişmiş olabilir. 
-# Ancak, bu son denemede doğru varsayılan yolları kullanıyoruz.
-
+from typing import Dict, Any
+from langchain.retrievers.multi_query import MultiQueryRetriever # MultiQuery için gerekli
 # =================================================================
 # YARDIMCI FONKSİYON: SORGUYU KATEGORİZE ETME (Preprocessing/Routing Katmanı)
 # =================================================================
