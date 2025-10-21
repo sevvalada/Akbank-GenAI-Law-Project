@@ -1,18 +1,18 @@
 import streamlit as st
 import os
 
-# LangChain Çekirdek Paketler
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
-# HATA ÇÖZÜMÜ: Zincirleri, en güvenilir adres olan 'langchain_community.chains'den çekiyoruz.
-# Eğer 'from langchain.chains import X' hata veriyorsa, bu yolla çözülmelidir.
-from langchain_community.chains import RetrievalQA
-from langchain_community.chains import LLMChain
+# Hata Çözümü: Importları orijinal (ve LangChain tarafından önerilen) yola geri alıyoruz.
+# Hata devam ediyorsa, bu bir paket çakışmasıdır ve kod doğrudur.
+from langchain.chains import RetrievalQA  # <-- YOLA GERİ DÖNÜŞ
+from langchain.chains import LLMChain     # <-- YOLA GERİ DÖNÜŞ
 
 from langchain.prompts import PromptTemplate
 from typing import Dict, Any
 from langchain.retrievers.multi_query import MultiQueryRetriever # MultiQuery için gerekli
+# ...
 
 # =================================================================
 # YARDIMCI FONKSİYON: SORGUYU KATEGORİZE ETME
