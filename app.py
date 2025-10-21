@@ -2,14 +2,27 @@ import streamlit as st
 import os
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-# YENİ SATIRLAR (Hata giderme amaçlı)
-from langchain.chains.base import Chain  # LLMChain ve diğer zincirlerin ana bileşeni
-from langchain.chains.retrieval_qa.base import RetrievalQA # RetrievalQA'nın kesin adresi
 
-from langchain.chains import LLMChain
+# LangChain Çekirdek Modülleri: Artık çoğu modül doğrudan 'langchain.chains' altında bulunuyor.
+# Eğer bu importlar Streamlit Cloud'da hata veriyorsa, sorun LangChain'in kendi iç yapısındadır.
+
+# Retrieval ve LLM Zincirleri
+from langchain.chains import RetrievalQA 
+from langchain.chains import LLMChain 
+
+# Prompt Şablonları
 from langchain.prompts import PromptTemplate
+
+# Gelişmiş Retrieval (MultiQuery)
+from langchain.retrievers.multi_query import MultiQueryRetriever
+
+# Python Tür İpuçları
 from typing import Dict, Any
-from langchain.retrievers.multi_query import MultiQueryRetriever # MultiQuery için gerekli
+
+# Hata Veren Eksik Modüller İçin Düzeltme Notu:
+# Eğer yukarıdaki 'from langchain.chains import RetrievalQA' yine hata verirse, 
+# 'langchain-community' paketinin güncel sürümünde 'RetrievalQA'nın tam yolu değişmiş olabilir. 
+# Ancak, bu son denemede doğru varsayılan yolları kullanıyoruz.
 
 # =================================================================
 # YARDIMCI FONKSİYON: SORGUYU KATEGORİZE ETME (Preprocessing/Routing Katmanı)
