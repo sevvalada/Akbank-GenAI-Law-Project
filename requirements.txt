@@ -1,7 +1,7 @@
 streamlit
 pandas
-langchain
-langchain-community
+langchain==0.0.350
+langchain-community==0.0.6
 langchain-google-genai
 chromadb
 typing
