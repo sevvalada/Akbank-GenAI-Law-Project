@@ -55,7 +55,7 @@ Cevaplar, kaynak gösterimiyle birlikte sunularak şeffaf bir yapay zekâ deneyi
 ## Web Arayüzü
 
 **Canlı Uygulama Linki:**  
-[https://aile-hukuku-chatbotu.streamlit.app/](https://aile-hukuku-chatbotu.streamlit.app/)
+https://akbank-genai-law-project-3rddmmjewhhcgx6rhwxikq.streamlit.app/
 
 Bu bağlantı üzerinden chatbot arayüzüne erişebilir, Aile Hukuku kapsamında yasal sorularınızı test edebilirsiniz.  
 Uygulama, her cevabın dayandığı **TMK maddelerini** kullanıcıya şeffaf biçimde sunar.
