@@ -1,0 +1,8 @@
+google-genai
+langchain
+langchain-google-genai
+langchain-community
+chromadb
+pandas
+# Web arayüzü için:
+streamlit
