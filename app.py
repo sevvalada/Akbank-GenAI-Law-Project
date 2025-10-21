@@ -3,21 +3,18 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
-# LangChain Çekirdek Modülleri: Artık çoğu modül doğrudan 'langchain.chains' altında bulunuyor.
-# Eğer bu importlar Streamlit Cloud'da hata veriyorsa, sorun LangChain'in kendi iç yapısındadır.
+# Retrieval ve LLM Zincirleri: Hata çözümü için doğrudan community'den çekiliyor
+from langchain_community.chains import RetrievalQA  # <-- YENİ ÇAĞRI
+from langchain_community.chains import LLMChain     # <-- YENİ ÇAĞRI
 
-# Retrieval ve LLM Zincirleri
-from langchain.chains import RetrievalQA 
-from langchain.chains import LLMChain 
-
-# Prompt Şablonları
+# Prompt Şablonları (Bu doğru kalır)
 from langchain.prompts import PromptTemplate
 
-# Gelişmiş Retrieval (MultiQuery)
+# Gelişmiş Retrieval (Bu doğru kalır)
 from langchain.retrievers.multi_query import MultiQueryRetriever
+from typing import Dict, Any 
 
-# Python Tür İpuçları
-from typing import Dict, Any
+
 
 # Hata Veren Eksik Modüller İçin Düzeltme Notu:
 # Eğer yukarıdaki 'from langchain.chains import RetrievalQA' yine hata verirse, 
