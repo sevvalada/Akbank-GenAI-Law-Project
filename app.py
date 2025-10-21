@@ -1,5 +1,10 @@
 import streamlit as st
 import os
+import langchain
+import sys
+
+print("LangChain version:", langchain.__version__)
+print("Python version:", sys.version)
 
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
@@ -12,7 +17,7 @@ from langchain.chains import LLMChain     # <-- YOLA GERİ DÖNÜŞ
 from langchain.prompts import PromptTemplate
 from typing import Dict, Any
 from langchain.retrievers.multi_query import MultiQueryRetriever # MultiQuery için gerekli
-# ...
+# ...from langchain.chains import RetrievalQA # LangChain'in doğru yolu
 
 # =================================================================
 # YARDIMCI FONKSİYON: SORGUYU KATEGORİZE ETME
