@@ -1,8 +1,15 @@
-google-genai
+# LangChain çekirdek paketleri
 langchain
-langchain-google-genai
 langchain-community
+
+# Gemini Entegrasyonu (langchain-google-genai yeterlidir, google-genai gereksizdir)
+langchain-google-genai
+
+# Veri tabanı ve arayüz
 chromadb
 pandas
-# Web arayüzü için:
 streamlit
+typing # Güvenlik için eklendi
+
+# Gerekirse spesifik bir sürüm belirtebilirsiniz. 
+# Örn: chromadb>=0.4.24
