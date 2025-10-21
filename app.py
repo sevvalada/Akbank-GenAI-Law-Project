@@ -123,11 +123,8 @@ if user_query:
         try:
             determined_source = get_source_filter(llm_categorizer, user_query)
             filter_condition = {}
-            if determined_source and determined_source != "Diğer":
-                filter_condition = {"source": determined_source}
-                st.info(f"Filtre Uygulandı: Sorgu, **{determined_source}** kaynağına yönlendirildi.")
-            else:
-                st.info("Filtre Uygulanmadı: Geniş alanda arama yapılıyor.")
+        
+            st.info("Filtre Uygulanmadı: Geniş alanda arama yapılıyor.")
 
             base_retriever = vectorstore.as_retriever(
                 search_type="mmr",
