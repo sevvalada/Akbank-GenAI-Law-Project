@@ -1,7 +1,7 @@
 import streamlit as st
 import os
-import langchain
 import sys
+import langchain
 
 print("LangChain version:", langchain.__version__)
 print("Python version:", sys.version)
@@ -16,14 +16,8 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 # YARDIMCI FONKSİYON: SORGUYU KATEGORİZE ETME
 # =================================================================
 def get_source_filter(llm_categorizer: ChatGoogleGenerativeAI, query: str) -> str:
-    source_list = [
-        "Türkiye Cumhuriyeti Anayasası",
-        "Türk Medeni Kanunu",
-        "Türk Ceza Kanunu",
-        "Borçlar Kanunu",
-        "İcra ve İflas Kanunu",
-        "Diğer"
-    ]
+    source_list = ["Türkiye Cumhuriyeti Anayasası", "Türk Medeni Kanunu", 
+                   "Türk Ceza Kanunu", "Borçlar Kanunu", "İcra ve İflas Kanunu", "Diğer"]
     source_prompt = PromptTemplate(
         template=f"""Kullanıcı sorgusunu analiz et ve sorgunun en çok hangi hukuki kaynağa ait olduğunu belirle.
         Sadece aşağıdaki kaynaklardan birini cevap olarak döndür: {', '.join(source_list)}. 
@@ -32,7 +26,9 @@ def get_source_filter(llm_categorizer: ChatGoogleGenerativeAI, query: str) -> st
         Kaynak:""",
         input_variables=["query"]
     )
+    
     chain = LLMChain(llm=llm_categorizer, prompt=source_prompt)
+    
     try:
         response = chain.run(query=query).strip()
         if response in source_list:
@@ -40,13 +36,13 @@ def get_source_filter(llm_categorizer: ChatGoogleGenerativeAI, query: str) -> st
         else:
             return None
     except Exception:
-        return None
+        return None 
 
 # =================================================================
-# RAG PIPELINE YÜKLEME
+# 1. ORTAM KONTROLÜ VE RAG PIPELINE YÜKLEMESİ
 # =================================================================
 if 'GEMINI_API_KEY' not in os.environ:
-    st.error("HATA: GEMINI_API_KEY ortam değişkeni tanımlı değil. Lütfen terminalde ayarlayın (export/set).")
+    st.error("HATA: GEMINI_API_KEY ortam değişkeni tanımlı değil.")
     st.stop()
 
 RAG_PROMPT_TEMPLATE = """
@@ -59,10 +55,7 @@ Bağlam:
 
 Soru: {question}
 """
-RAG_PROMPT = PromptTemplate(
-    template=RAG_PROMPT_TEMPLATE,
-    input_variables=["context", "question"]
-)
+RAG_PROMPT = PromptTemplate(template=RAG_PROMPT_TEMPLATE, input_variables=["context", "question"])
 
 @st.cache_resource
 def setup_rag_pipeline():
@@ -74,23 +67,27 @@ def setup_rag_pipeline():
             temperature=0.2,
             google_api_key=GEMINI_API_KEY_VALUE
         )
+
         embeddings = GoogleGenerativeAIEmbeddings(
             model="models/text-embedding-004",
             google_api_key=GEMINI_API_KEY_VALUE
         )
+
         vectorstore = Chroma(
             persist_directory="./chroma_db",
             embedding_function=embeddings
         )
+
         llm_categorizer = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
             temperature=0.0,
             google_api_key=GEMINI_API_KEY_VALUE
         )
+
         return llm, embeddings, vectorstore, llm_categorizer
+
     except Exception as e:
-        st.error(f"RAG Pipeline Yüklenirken Kritik Hata Oluştu: {e}")
-        st.caption("Lütfen 'chroma_db' klasörünün varlığını ve API anahtarının geçerliliğini kontrol edin.")
+        st.error(f"RAG Pipeline yüklenirken hata: {e}")
         return None, None, None, None
 
 llm, embeddings, vectorstore, llm_categorizer = setup_rag_pipeline()
@@ -98,39 +95,35 @@ if llm is None:
     st.stop()
 
 # =================================================================
-# STREAMLIT ARAYÜZÜ
+# 2. STREAMLIT ARAYÜZÜ
 # =================================================================
 st.set_page_config(page_title="Aile Hukuku Asistanı", layout="centered")
 st.title("⚖️ Aile Hukuku Asistanı: TMK RAG Chatbot")
 st.caption("Bu uygulama, Türk Medeni Kanunu'nun Aile Hukuku hükümlerine odaklanarak cevaplar üretir. (Gemini Destekli)")
 
-user_query = st.text_input(
-    "Hukuki sorunuzu girin:",
-    placeholder="Örn: Türk Medeni Kanunu'na göre, eşlerden birinin diğerini terk etmesi durumunda boşanma davası açılabilmesi için hangi şartlar aranır?",
-    key="user_input_box"
-)
+user_query = st.text_input("Hukuki sorunuzu girin:",
+                           placeholder="Örn: Türk Medeni Kanunu'na göre, eşlerden birinin diğerini terk etmesi durumunda boşanma davası açılabilmesi için hangi şartlar aranır?",
+                           key="user_input_box")
 
 if user_query:
-    with st.spinner("Cevap Aranıyor... (Gemini API çağrısı yapılıyor)"):
+    with st.spinner("Cevap aranıyor..."):
         try:
-            # 1. Kaynağı belirle
             determined_source = get_source_filter(llm_categorizer, user_query)
-
+            
+            filter_condition = None
             if determined_source and determined_source != "Diğer":
-                filter_condition = {"source": determined_source}
+                filter_condition = {"source": {"$eq": determined_source}}
                 st.info(f"Filtre Uygulandı: Sorgu, **{determined_source}** kaynağına yönlendirildi.")
             else:
-                filter_condition = None
                 st.info("Filtre Uygulanmadı: Geniş alanda arama yapılıyor.")
-
-            # 2. Retriever oluştur
-            search_kwargs = {"k": 5, "fetch_k": 30}
-            if filter_condition:
-                search_kwargs["filter"] = filter_condition
 
             base_retriever = vectorstore.as_retriever(
                 search_type="mmr",
-                search_kwargs=search_kwargs
+                search_kwargs={
+                    "k": 5,
+                    "fetch_k": 30,
+                    **({"filter": filter_condition} if filter_condition else {})
+                }
             )
 
             retriever = MultiQueryRetriever.from_llm(
@@ -138,7 +131,6 @@ if user_query:
                 llm=llm_categorizer,
             )
 
-            # 3. RAG Zinciri
             qa_chain = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
