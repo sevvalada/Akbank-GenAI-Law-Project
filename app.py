@@ -84,7 +84,7 @@ def setup_rag_pipeline():
             google_api_key=GEMINI_API_KEY_VALUE
         )
         embeddings = GoogleGenerativeAIEmbeddings(
-            model="text-embedding-004",
+            model="models/text-embedding-004",
             google_api_key=GEMINI_API_KEY_VALUE
         )
         
