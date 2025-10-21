@@ -2,7 +2,10 @@ import streamlit as st
 import os
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langchain.chains import RetrievalQA
+# YENİ SATIRLAR (Hata giderme amaçlı)
+from langchain.chains.base import Chain  # LLMChain ve diğer zincirlerin ana bileşeni
+from langchain.chains.retrieval_qa.base import RetrievalQA # RetrievalQA'nın kesin adresi
+
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from typing import Dict, Any
