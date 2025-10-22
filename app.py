@@ -1,4 +1,4 @@
-# Düzeltilmiş ve debug'lu app.py (Streamlit)
+# app.py - Güncellenmiş, hata yakalayan ve model-adı uyumlu versiyon
 import streamlit as st
 import os
 import sys
@@ -11,7 +11,13 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain.chains import RetrievalQA, LLMChain
 from langchain.prompts import PromptTemplate
-# NOT: MultiQueryRetriever kullanımı debug sonrası eklenebilir
+
+# -------------------------
+# AYAR: Model isimleri (API ile uyumlu format)
+# -------------------------
+# Not: Buradaki model isimleri yeni Google Generative API kurallarına göre "models/..." ile başlamalıdır.
+LLM_MODEL = "models/gemini-2.5-flash"
+EMBEDDING_MODEL = "models/text-embedding-004"
 
 # -------------------------
 # PROMPT ve KATEGORİZATÖR
@@ -69,26 +75,25 @@ def setup_rag_pipeline():
 
         # LLM (generation)
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model=LLM_MODEL,
             temperature=0.2,
             google_api_key=GEMINI_API_KEY_VALUE
         )
 
         # KATEGORİZATÖR (daha deterministik)
         llm_categorizer = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model=LLM_MODEL,
             temperature=0.0,
             google_api_key=GEMINI_API_KEY_VALUE
         )
 
-        # EMBEDDINGS (tutarlı model ismi)
+        # EMBEDDINGS (API uyumlu model adı)
         embeddings = GoogleGenerativeAIEmbeddings(
-            # Bazı paketlerde model ismi "text-embedding-004" ya da "text-embedding-004" fark edilebilir.
-            model="text-embedding-004",
+            model=EMBEDDING_MODEL,
             google_api_key=GEMINI_API_KEY_VALUE
         )
 
-        # Chroma: persist edilmiş DB'yi yükle (eğer yoksa boş bir client dönebilir)
+        # Chroma: persist edilmiş DB'yi yükle (DB yoksa boş client olabilir)
         vectorstore = Chroma(
             persist_directory="./chroma_db",
             embedding_function=embeddings
@@ -97,6 +102,7 @@ def setup_rag_pipeline():
         return llm, embeddings, vectorstore, llm_categorizer
 
     except Exception as e:
+        # Hata burada genelde model adı formatından ya da cred ile ilgili olabilir.
         st.error(f"RAG Pipeline yüklenirken hata: {e}")
         return None, None, None, None
 
@@ -109,9 +115,26 @@ if llm is None:
 # -------------------------
 st.write("DEBUG: ./chroma_db dizini var mı?", os.path.exists("./chroma_db"))
 try:
-    # Basit similarity search ile DB'den birkaç doc çekmeye çalış
-    test_docs = vectorstore.similarity_search("boşanma", k=3)
-    st.write("DEBUG: similarity_search(boşanma) ile dönen doküman sayısı:", len(test_docs))
+    # similarity_search çağrısını try/except içine alıyoruz. Embedding hatası burada da patlayabilir.
+    try:
+        test_docs = vectorstore.similarity_search("boşanma", k=3)
+        st.write("DEBUG: similarity_search(boşanma) ile dönen doküman sayısı:", len(test_docs))
+    except Exception as se:
+        # Eğer burada embedding ya da model adı hatası gelirse kullanıcıya yol göster
+        st.error(f"DEBUG: vectorstore.similarity_search sırasında hata: {se}")
+        # Özel hata mesajı: model adı formatı ile alakalıysa kullanıcının yeniden indeksleme yapması gerekir
+        if "Model names should start with models/" in str(se) or "models/" in str(se):
+            st.warning(
+                "Embedding model adıyla ilgili bir uyumsuzluk tespit edildi. "
+                "Muhtemelen chroma_db içindeki vektörler eski/uyumsuz bir modelle indekslendi. "
+                "Çözüm: indexing (embedding & Chroma.from_documents) adımını yeniden çalıştırarak chroma_db'yi rebuild edin.\n\n"
+                "Adımlar (yerel veya sunucuda):\n"
+                "1) Verisetinizi yükleyen ve Chroma.from_documents yapan script'i çalıştırın (ör: rag_hukuk.py). "
+                "2) Bu script embeddings parametresinde model='models/text-embedding-004' kullansın.\n"
+                "3) Embed + Chroma.from_documents tamamlandıktan sonra uygulamayı yeniden başlatın."
+            )
+        test_docs = []
+
     if len(test_docs) > 0:
         for i, d in enumerate(test_docs):
             st.write(f"DEBUG DOC {i+1} - source:", d.metadata.get("source", "Bilinmiyor"))
@@ -154,7 +177,12 @@ if user_query:
             )
 
             # Küçük kontrol: retriever ile gerçekten doc çekilebiliyor mu?
-            test_pull = base_retriever.get_relevant_documents(user_query) if hasattr(base_retriever, "get_relevant_documents") else base_retriever.retrieve(user_query)
+            try:
+                test_pull = base_retriever.get_relevant_documents(user_query) if hasattr(base_retriever, "get_relevant_documents") else base_retriever.retrieve(user_query)
+            except Exception as e_retr:
+                st.error(f"DEBUG: retriever doküman çekme hatası: {e_retr}")
+                test_pull = []
+
             st.write("DEBUG: retriever ile çekilen doküman sayısı:", len(test_pull))
             if len(test_pull) == 0:
                 st.warning("Retriever herhangi bir doküman döndürmedi. Bu, vektör veritabanının boş veya filtre uyumsuzluğu olabileceğini gösterir.")
